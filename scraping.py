@@ -16,6 +16,7 @@ num_reviews = []
 num_ratings = []
 avg_rating = []
 
+# FIRST 100 BOOKS 
 
 # gather urls
 url = []
@@ -41,11 +42,20 @@ for i in author_name:
     author.append(name)
 
 
-# OTHER PAGE ('page 2') IS USED TO GATHER REVIEWS AND RATINGS
 
+### GATHER AVG RATINGS AND RATINGS NUMBERS EASIER WAY
+ratings = soup.find_all('span', class_ = "minirating")
+for i in ratings:
+    avg_rates = (i.text.split())[0]
+    num_rates = (i.text.split())[4]
+    avg_rating.append(avg_rates)
+    num_ratings.append(num_rates)
+
+
+# OTHER PAGE ('page 2') IS USED TO GATHER REVIEWS AND RATINGS (HARDER MO COMPLICATED WAY)
 
 # gather average ratings
-for i in url:
+'''for i in url:
         page2 = requests.get(i)
         soup2 = BeautifulSoup(page2.content, 'html.parser')
         avge = soup2.find(itemprop="ratingValue")
@@ -75,16 +85,48 @@ for i in url:
             num_reviews.append('not found')
         #num_reviews.append(reviews)
         sleep(randint(2, 5))
+'''
+
+
+#SCRAPE REMAINING 900 BOOKS
+
+#scrape 900 of the first 5 columns (NEW WAY)
+
+page = 2
+url_page = f"https://www.goodreads.com/list/show/50.The_Best_Epic_Fantasy_fiction_?page={page}"
+page_all = requests.get(url_page)
+soup_all = BeautifulSoup(page_all.content, 'html.parser')
+
+while page != 11:
+    # gather urls
+    book_urls = soup_all.find_all('tr', itemtype='http://schema.org/Book')
+        #print(book_urls[1].a['href'])
+    for i in range(len(book_urls)):
+        address = 'https://www.goodreads.com' + book_urls[i].a['href']
+        url.append(address)
+      # gather titles
+    book_title = soup_all.find_all('tr', itemtype="http://schema.org/Book")
+    for i in book_title:
+        name_bt = i.find('span').text
+        title.append(name_bt)
+        #gather author names
+    author_name = soup_all.find_all('tr', itemtype="http://schema.org/Book")
+    for i in author_name:
+        name_a = i.find('a', class_ = "authorName").text
+        author.append(name_a)
+    ratings = soup_all.find_all('span', class_ = "minirating")
+    for i in ratings:
+      avg_rates = (i.text.split())[0]
+      num_rates = (i.text.split())[4]
+      avg_rating.append(avg_rates)
+      num_ratings.append(num_rates)
+    page = page + 1
 
 
 
+# OLD WAY OF SCRAPPING IS BELOW
 
-
-
-#scrape other pages up to 10 so we can get to 1000
-
-#scrape 900 urls, titles and authors
-
+'''
 page = 2
 url_page = f"https://www.goodreads.com/list/show/50.The_Best_Epic_Fantasy_fiction_?page={page}"
 page_all = requests.get(url_page)
@@ -143,8 +185,8 @@ while page != 5:
 '''
 
 #creating the dataframe
-df = pd.DataFrame({'url':url,'title':title,'author':author,'avg_rating':avg_rating})#,'num_ratings':num_ratings,'num_reviews':num_reviews})
+df = pd.DataFrame({'url':url,'title':title,'author':author,'avg_rating':avg_rating,'num_ratings':num_ratings})#,'num_reviews':num_reviews})
 #df.head()
 
 # save to csv 
-df.to_csv('best_fantasy_books.csv',index=False)'''
+df.to_csv('1000_best_fantasy_books_5_columns.csv',index=False)
